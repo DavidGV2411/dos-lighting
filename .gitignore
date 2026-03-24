@@ -1,0 +1,25 @@
+﻿# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+
+# Node
+frontend/node_modules
+frontend/dist
+backend-ts/node_modules
+backend-ts/dist
+
+# Java
+backend/target
+
+# Local data
+.tools/
+.data/
+pgdata
+chatbot-python/.venv
+chatbot-python/.pytest_cache
+chatbot-python/.coverage
+__pycache__/
+*.pyc
