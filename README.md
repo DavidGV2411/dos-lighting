@@ -1,6 +1,6 @@
 # Luces LED MVP
 
-Proyecto MVP con backend en Spring Boot y frontend en React para recomendacion de productos LED por compatibilidad vehicular.
+Proyecto DOS Lighting para recomendar luces LED por compatibilidad vehicular. La aplicacion principal usa backend TypeScript, frontend React y un chatbot Python que puede trabajar con OpenAI o con fallback guiado.
 
 ## Stack
 - Backend principal: TypeScript (Node.js + Express + PostgreSQL)
@@ -8,6 +8,7 @@ Proyecto MVP con backend en Spring Boot y frontend en React para recomendacion d
 - Backend legado: Java 21+, Spring Boot 3.3.x, Spring Data JPA, Flyway
 - Base de datos: PostgreSQL 16
 - Frontend: React + Vite
+- MCP local de desarrollo: TypeScript + transporte STDIO
 - Infra local: Docker Compose
 
 ## Estructura
@@ -32,6 +33,8 @@ Proyecto MVP con backend en Spring Boot y frontend en React para recomendacion d
 |   |-- V5__recomendaciones_resolver.sql
 |   `-- V6__retencion_consultas_metricas.sql
 |-- frontend/
+|-- mcp/
+|   `-- dos-lighting-mcp/
 |-- docker-compose.yml
 |-- .env.example
 `-- README.md
@@ -64,13 +67,13 @@ npm install
 npm run dev
 ```
 
-Backend Java legado, desde [backend/pom.xml](c:\Users\Sebastian\OneDrive\Desktop\programacion empirica\UDEMY\Matrices\backend\pom.xml):
+Backend Java legado, desde `backend`:
 ```bash
 mvn spring-boot:run
 ```
 
 ### 3) Levantar chatbot Python
-Desde [chatbot-python/pyproject.toml](C:\Users\USER\Desktop\proyecto luces\chatbot-python\pyproject.toml):
+Desde `chatbot-python`:
 ```bash
 cd chatbot-python
 python -m venv .venv
@@ -85,9 +88,10 @@ Variables necesarias en `.env`:
 - `CHATBOT_PORT`
 - `BACKEND_API_BASE_URL`
 - `CHAT_SESSION_TTL_MINUTES`
+- `DOS_LIGHTING_PROJECT_ROOT` opcional para el MCP local
 
 ### 4) Levantar frontend
-Desde [frontend/package.json](c:\Users\Sebastian\OneDrive\Desktop\programacion empirica\UDEMY\Matrices\frontend\package.json):
+Desde `frontend`:
 ```bash
 npm install
 npm run dev
@@ -108,7 +112,7 @@ npm run dev
   - Usuario inicial seed: `admin`
   - Password inicial seed: `admin123`
 - Endpoints HTTP listos para ejecutar:
-  - [backend/endpoints.http](c:\Users\Sebastian\OneDrive\Desktop\programacion empirica\UDEMY\Matrices\backend\endpoints.http)
+  - `backend/endpoints.http`
 
 ### Endpoint clave de recomendacion
 `POST /api/recomendaciones/resolver`
@@ -119,11 +123,77 @@ Ejemplo de request:
   "marcaId": 1,
   "modeloId": 1,
   "anioVehiculo": 2018,
-  "perfilUsoId": 3,
+  "horarioManejoPerfilId": 3,
+  "zonaManejoPerfilId": 5,
+  "usoVehiculoPerfilId": 9,
   "tipoPolarizadoId": 1,
   "tipoSistemaOpticoId": 2
 }
 ```
+
+## Arquitectura actual
+
+El backend TypeScript esta migrando de forma incremental a arquitectura hexagonal. La vertical de recomendacion ya separa:
+- `domain`: tipos, errores y scoring de recomendacion.
+- `application`: casos de uso `ResolveRecommendationUseCase` y `DecideOpticalSystemUseCase`.
+- `ports`: repositorio de recomendacion como contrato de acceso a datos.
+- `infrastructure`: repositorio PostgreSQL.
+- `http`: rutas Express y schemas Zod.
+
+El chatbot Python tambien queda separado por capas:
+- `domain`: sesion, metadata conversacional y resultados de tools.
+- `application`: `ChatService` y fallback guiado.
+- `ports`: protocolos para LLM, sesiones, rate limiter y tools.
+- `adapters`: clientes OpenAI/backend HTTP y store en memoria.
+
+Regla clave: el dominio no debe importar Express, FastAPI, `pg`, `httpx`, OpenAI SDK ni variables de entorno.
+
+## MCP local de desarrollo
+
+El servidor MCP vive en `mcp/dos-lighting-mcp` y es solo para desarrollo. No forma parte del producto final ni escribe archivos.
+
+Instalacion:
+```bash
+cd mcp/dos-lighting-mcp
+npm install
+npm run build
+```
+
+Configuracion sugerida para Codex/VS Code:
+```json
+{
+  "mcpServers": {
+    "dos-lighting-mcp": {
+      "command": "node",
+      "args": ["C:/Users/USER/Desktop/proyecto luces/mcp/dos-lighting-mcp/dist/index.js"],
+      "env": {
+        "DOS_LIGHTING_PROJECT_ROOT": "C:/Users/USER/Desktop/proyecto luces"
+      }
+    }
+  }
+}
+```
+
+Recursos MCP disponibles:
+- `dos://architecture/overview`
+- `dos://db/schema`
+- `dos://api/endpoints`
+- `dos://recommendation/rules`
+- `dos://chatbot/flow`
+- `dos://verification/commands`
+
+Tools MCP seguras:
+- `inspect_project_health`
+- `list_api_contracts`
+- `get_recommendation_flow`
+- `get_database_schema_summary`
+- `run_safe_verification`
+
+Prompts MCP disponibles:
+- `refactor-to-hexagonal`
+- `explain-recommendation-flow`
+- `add-feature-safely`
+- `review-boundaries`
 
 ## Migraciones y seed
 
@@ -158,7 +228,7 @@ Tarea programada (`@Scheduled`) configurable por propiedades:
 3. Elimina `consulta_recomendaciones` > 365 dias.
 4. Elimina `consultas` > 540 dias.
 
-Variables relevantes (ver [.env.example](c:\Users\Sebastian\OneDrive\Desktop\programacion empirica\UDEMY\Matrices\.env.example)):
+Variables relevantes (ver `.env.example`):
 - `RETENCION_ENABLED`
 - `RETENCION_CRON`
 - `RETENCION_DIAS_ANONIMIZAR`
@@ -169,7 +239,7 @@ Variables relevantes (ver [.env.example](c:\Users\Sebastian\OneDrive\Desktop\pro
 
 ## Pruebas
 
-Desde [backend/pom.xml](c:\Users\Sebastian\OneDrive\Desktop\programacion empirica\UDEMY\Matrices\backend\pom.xml):
+Backend Java legado:
 ```bash
 mvn test
 ```
@@ -187,11 +257,19 @@ cd chatbot-python
 pytest
 ```
 
-Pruebas agregadas para recomendacion:
-- Unitarias de servicio:
-  - [RecomendacionResolverServiceTest.java](c:\Users\Sebastian\OneDrive\Desktop\programacion empirica\UDEMY\Matrices\backend\src\test\java\com\example\mvp\recomendacion\RecomendacionResolverServiceTest.java)
-- Integracion web del endpoint:
-  - [RecomendacionResolverControllerIntegrationTest.java](c:\Users\Sebastian\OneDrive\Desktop\programacion empirica\UDEMY\Matrices\backend\src\test\java\com\example\mvp\recomendacion\RecomendacionResolverControllerIntegrationTest.java)
+Backend TypeScript:
+```bash
+cd backend-ts
+npm run lint
+npm test
+npm run build
+```
+
+MCP local:
+```bash
+cd mcp/dos-lighting-mcp
+npm run build
+```
 
 ## Troubleshooting
 
@@ -208,7 +286,7 @@ Pruebas agregadas para recomendacion:
 - Confirma que el contenedor este arriba: `docker compose ps`.
 
 4. Flyway validation/migration failed
-- Revisa orden y nombres de scripts en [database](c:\Users\Sebastian\OneDrive\Desktop\programacion empirica\UDEMY\Matrices\database).
+- Revisa orden y nombres de scripts en `database`.
 - Si es ambiente local descartable, reinicia volumen de DB (`docker compose down -v`) y vuelve a levantar.
 
 5. `POST /api/recomendaciones/resolver` retorna sin resultados
@@ -220,7 +298,7 @@ Pruebas agregadas para recomendacion:
 6. El chatbot responde `503`
 - Verifica que `OPENAI_API_KEY` exista en `.env`.
 - Confirma que el servicio Python este arriba en `http://localhost:8001/api/chat/health`.
-- Revisa la guia tecnica en [chatbot-python/CODE_GUIDE.md](C:\Users\USER\Desktop\proyecto luces\chatbot-python\CODE_GUIDE.md).
+- Revisa la guia tecnica en `chatbot-python/CODE_GUIDE.md`.
 
 ## Detener servicios
 - Backend/Chatbot/Frontend: `Ctrl + C`

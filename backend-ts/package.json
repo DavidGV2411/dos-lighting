@@ -5,10 +5,11 @@
   "description": "Backend TypeScript para MVP de luces LED",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "start": "node dist/index.js",
-    "build": "tsc -p tsconfig.json",
-    "lint": "tsc -p tsconfig.json --noEmit"
+    "dev": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/run-node.ps1 ./node_modules/tsx/dist/cli.mjs watch src/index.ts",
+    "start": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/run-node.ps1 dist/index.js",
+    "build": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/run-node.ps1 ./node_modules/typescript/bin/tsc -p tsconfig.json",
+    "lint": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/run-node.ps1 ./node_modules/typescript/bin/tsc -p tsconfig.json --noEmit",
+    "test": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/run-node.ps1 ./node_modules/tsx/dist/cli.mjs --test src/recommendation/application/resolve-recommendation-use-case.test.ts"
   },
   "dependencies": {
     "dotenv": "^16.5.0",

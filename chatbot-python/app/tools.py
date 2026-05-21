@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
 from typing import Any
 
-from app.backend_client import BackendClient, BackendServiceError
+from app.backend_client import BackendServiceError
+from app.domain.tooling import ToolContextUpdate, ToolExecutionResult
+from app.ports import BackendCatalogClient
 
 FIELD_NAME_MAP = {
     "marcaId": "marcaId",
@@ -129,20 +130,6 @@ TOOL_DEFINITIONS: list[dict[str, Any]] = [
 ]
 
 
-@dataclass
-class ToolContextUpdate:
-    known_values: dict[str, Any] = field(default_factory=dict)
-    last_missing_fields: list[str] = field(default_factory=list)
-    last_recommendation: dict[str, Any] | None = None
-    catalogs_loaded: bool = False
-
-
-@dataclass
-class ToolExecutionResult:
-    output_text: str
-    context: ToolContextUpdate = field(default_factory=ToolContextUpdate)
-
-
 def _json_output(payload: dict[str, Any]) -> str:
     return json.dumps(payload, ensure_ascii=False)
 
@@ -168,7 +155,7 @@ def _extract_missing_fields(payload: dict[str, Any]) -> list[str]:
 
 
 class ToolRunner:
-    def __init__(self, backend_client: BackendClient) -> None:
+    def __init__(self, backend_client: BackendCatalogClient) -> None:
         self._backend_client = backend_client
 
     @property

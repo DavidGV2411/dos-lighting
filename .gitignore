@@ -10,6 +10,8 @@ frontend/node_modules
 frontend/dist
 backend-ts/node_modules
 backend-ts/dist
+mcp/dos-lighting-mcp/node_modules
+mcp/dos-lighting-mcp/dist
 
 # Java
 backend/target

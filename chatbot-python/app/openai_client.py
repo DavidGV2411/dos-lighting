@@ -4,8 +4,10 @@ from typing import Any
 
 from openai import AsyncOpenAI
 
+from app.domain.errors import LlmServiceError
 
-class OpenAIServiceError(Exception):
+
+class OpenAIServiceError(LlmServiceError):
     pass
 
 

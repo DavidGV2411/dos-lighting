@@ -1,0 +1,2 @@
+class LlmServiceError(Exception):
+    pass

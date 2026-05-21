@@ -1,9 +1,0 @@
-Explicacion corta del chatbot
-
-Este chatbot se creo como un apoyo para la pagina web de DOS Lighting. La idea principal no fue reemplazar el sistema de recomendacion, sino hacerlo mas amigable para el usuario. En vez de llenar todo un formulario de una sola vez, la persona puede hablar con el bot y este va pidiendo los datos poco a poco.
-
-La parte visual esta en React, con un widget flotante dentro de la pagina. Cuando el usuario escribe, el mensaje se envia a un servicio en Python hecho con FastAPI. Ese servicio guarda la conversacion de forma temporal, revisa que datos faltan y consulta el backend principal para traer marcas, modelos, gamas y recomendaciones reales.
-
-Algo importante es que el chatbot no inventa la recomendacion. Realmente reutiliza la logica del sistema principal, por eso las respuestas estan conectadas con la informacion del proyecto. En pocas palabras, React muestra el chat, Python maneja la conversacion y el backend principal sigue siendo la fuente de verdad.
-
-En mi opinion, esta solucion esta bien pensada porque separa responsabilidades y hace el proyecto mas ordenado. Tambien ayuda a que en el futuro sea mas facil mejorar el chatbot sin dañar el resto del sistema.

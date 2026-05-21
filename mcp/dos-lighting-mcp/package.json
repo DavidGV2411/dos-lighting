@@ -1,0 +1,19 @@
+{
+  "name": "dos-lighting-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Read-only MCP server for DOS Lighting development workflows.",
+  "scripts": {
+    "build": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/run-node.ps1 ./node_modules/typescript/bin/tsc -p tsconfig.json",
+    "start": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/run-node.ps1 dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.21.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.3",
+    "typescript": "^5.8.3"
+  }
+}
