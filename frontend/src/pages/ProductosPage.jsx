@@ -22,6 +22,20 @@ import { toDecimal, toInteger } from "../utils/format";
 const POSICIONES = ["cruce", "largo", "cruce_y_largo", "antiniebla", "todos"];
 const SISTEMAS_OPTICOS = ["lupa_proyector", "reflector_abierto", "ambos"];
 
+const POSICION_LABELS = {
+  cruce: "Cruce",
+  largo: "Largo",
+  cruce_y_largo: "Cruce y largo",
+  antiniebla: "Antiniebla",
+  todos: "Todas las posiciones"
+};
+
+const SISTEMA_OPTICO_LABELS = {
+  lupa_proyector: "Lupa / proyector",
+  reflector_abierto: "Reflector abierto",
+  ambos: "Ambos sistemas"
+};
+
 const EMPTY_FORM = {
   id: null,
   idMarcaLed: "",
@@ -38,6 +52,37 @@ const EMPTY_FORM = {
   notas: "",
   idGamaLuz: ""
 };
+
+function formatCatalogOption(value, labels) {
+  return labels[value] || value;
+}
+
+function formatCurrency(value) {
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) {
+    return "-";
+  }
+
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  }).format(amount);
+}
+
+function formatMetric(value, suffix) {
+  if (value === null || value === undefined || value === "") {
+    return "-";
+  }
+
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) {
+    return "-";
+  }
+
+  return `${new Intl.NumberFormat("es-CO", { maximumFractionDigits: 2 }).format(amount)} ${suffix}`;
+}
 
 function resolveGamaByPotenciaWatts(potenciaWatts, gamasLuz) {
   const potencia = Number(potenciaWatts);
@@ -60,23 +105,25 @@ function resolveGamaByPotenciaWatts(potenciaWatts, gamasLuz) {
 function validateForm(form, items) {
   const errors = {};
 
-  if (!form.idMarcaLed) errors.idMarcaLed = "Marca LED obligatoria.";
-  if (!form.modelo.trim()) errors.modelo = "Modelo obligatorio.";
-  if (!form.idCasquillo) errors.idCasquillo = "Casquillo obligatorio.";
-  if (!form.posicionAplicable) errors.posicionAplicable = "Posicion obligatoria.";
-  if (!form.sistemaOpticoCompatible) errors.sistemaOpticoCompatible = "Sistema optico obligatorio.";
-  if (!form.lumens || Number(form.lumens) <= 0) errors.lumens = "Lumens debe ser mayor a 0.";
+  if (!form.idMarcaLed) errors.idMarcaLed = "Selecciona una marca LED.";
+  if (!form.modelo.trim()) errors.modelo = "Ingresa el modelo comercial del producto.";
+  if (!form.idCasquillo) errors.idCasquillo = "Selecciona el casquillo compatible.";
+  if (!form.posicionAplicable) errors.posicionAplicable = "Selecciona donde aplica el producto.";
+  if (!form.sistemaOpticoCompatible) {
+    errors.sistemaOpticoCompatible = "Selecciona el sistema optico compatible.";
+  }
+  if (!form.lumens || Number(form.lumens) <= 0) errors.lumens = "Los lumens deben ser mayores a 0.";
   if (!form.temperaturaColor || Number(form.temperaturaColor) <= 0) {
-    errors.temperaturaColor = "Temperatura debe ser mayor a 0.";
+    errors.temperaturaColor = "La temperatura de color debe ser mayor a 0 K.";
   }
   if (!form.potenciaWatts || Number(form.potenciaWatts) <= 0) {
-    errors.potenciaWatts = "Potencia debe ser mayor a 0.";
+    errors.potenciaWatts = "La potencia debe ser mayor a 0 W.";
   }
   if (!form.idGamaLuz) {
-    errors.idGamaLuz = "No hay gama configurada para esa potencia.";
+    errors.idGamaLuz = "La potencia no coincide con una gama activa.";
   }
   if (form.precio === "" || Number(form.precio) < 0) {
-    errors.precio = "Precio no puede ser negativo.";
+    errors.precio = "El precio no puede ser negativo.";
   }
 
   if (
@@ -166,6 +213,10 @@ function ProductosPage() {
     () => Object.fromEntries(casquillos.map((casquillo) => [casquillo.id, casquillo.codigo])),
     [casquillos]
   );
+  const gamasById = useMemo(
+    () => Object.fromEntries(gamasLuz.map((gama) => [gama.id, gama.nombre])),
+    [gamasLuz]
+  );
 
   const filteredItems = useMemo(
     () =>
@@ -189,6 +240,20 @@ function ProductosPage() {
           );
         }),
     [items, filters, marcasById, casquillosById]
+  );
+
+  const productMetrics = useMemo(() => {
+    const disponibles = filteredItems.filter((item) => item.disponible).length;
+    return {
+      visibles: filteredItems.length,
+      disponibles,
+      noDisponibles: filteredItems.length - disponibles
+    };
+  }, [filteredItems]);
+
+  const selectedGama = useMemo(
+    () => gamasLuz.find((gama) => String(gama.id) === String(form.idGamaLuz)),
+    [form.idGamaLuz, gamasLuz]
   );
 
   useEffect(() => {
@@ -369,8 +434,8 @@ function ProductosPage() {
   return (
     <section className="panel">
       <header className="panel-header">
-        <h2>Modulo Productos LED</h2>
-        <p>Gestion de catalogo de productos con formulario y listado paginado.</p>
+        <h2>Productos LED</h2>
+        <p>Administra la ficha comercial y tecnica de los productos usados en recomendaciones.</p>
       </header>
 
       <ApiErrorBanner
@@ -382,43 +447,68 @@ function ProductosPage() {
       <SuccessBanner title="Cambios guardados" message={successMessage} />
 
       <div className="split-layout">
-        <article className="panel section">
-          <h3>{form.id ? `Editar producto #${form.id}` : "Crear producto"}</h3>
-          <form className="grid-form" onSubmit={handleSubmit} noValidate>
+        <article className="panel section product-admin-card">
+          <header className="section-header product-section-heading">
+            <div>
+              <h3>{form.id ? `Editar producto #${form.id}` : "Nuevo producto LED"}</h3>
+              <small>La gama se calcula automaticamente con la potencia en watts.</small>
+            </div>
+          </header>
+
+          <form className="grid-form product-form-grid" onSubmit={handleSubmit} noValidate>
+            <div className="product-form-group full-width">
+              <h4>Ficha comercial</h4>
+              <p>Datos principales para reconocer el producto en el catalogo.</p>
+            </div>
+
             <label>
               Marca LED
               <select name="idMarcaLed" value={form.idMarcaLed} onChange={handleFormChange}>
-                <option value="">Seleccionar</option>
+                <option value="">Selecciona una marca</option>
                 {marcasLed.map((marca) => (
                   <option key={marca.id} value={marca.id}>
                     {marca.nombre}
                   </option>
                 ))}
               </select>
+              <span className="product-help-text">Fabricante asociado al modelo comercial.</span>
               <FieldError message={formErrors.idMarcaLed} />
             </label>
 
             <label>
               Modelo
-              <input name="modelo" value={form.modelo} onChange={handleFormChange} maxLength={150} />
+              <input
+                name="modelo"
+                value={form.modelo}
+                onChange={handleFormChange}
+                maxLength={150}
+                placeholder="Ej. Ultra LED H4 12000LM"
+              />
+              <span className="product-help-text">Usa el nombre visible para busquedas y ventas.</span>
               <FieldError message={formErrors.modelo} />
             </label>
 
             <label>
               Casquillo
               <select name="idCasquillo" value={form.idCasquillo} onChange={handleFormChange}>
-                <option value="">Seleccionar</option>
+                <option value="">Selecciona un casquillo</option>
                 {casquillos.map((casquillo) => (
                   <option key={casquillo.id} value={casquillo.id}>
                     {casquillo.codigo}
                   </option>
                 ))}
               </select>
+              <span className="product-help-text">Base fisica compatible, por ejemplo H4, H7 o 9005.</span>
               <FieldError message={formErrors.idCasquillo} />
             </label>
 
+            <div className="product-form-group full-width">
+              <h4>Compatibilidad</h4>
+              <p>Indica en que posicion y sistema optico se recomienda usarlo.</p>
+            </div>
+
             <label>
-              Posicion aplicable
+              Posicion de uso
               <select
                 name="posicionAplicable"
                 value={form.posicionAplicable}
@@ -426,7 +516,7 @@ function ProductosPage() {
               >
                 {POSICIONES.map((pos) => (
                   <option key={pos} value={pos}>
-                    {pos}
+                    {formatCatalogOption(pos, POSICION_LABELS)}
                   </option>
                 ))}
               </select>
@@ -434,7 +524,7 @@ function ProductosPage() {
             </label>
 
             <label>
-              Sistema optico compatible
+              Sistema optico
               <select
                 name="sistemaOpticoCompatible"
                 value={form.sistemaOpticoCompatible}
@@ -442,27 +532,41 @@ function ProductosPage() {
               >
                 {SISTEMAS_OPTICOS.map((tipo) => (
                   <option key={tipo} value={tipo}>
-                    {tipo}
+                    {formatCatalogOption(tipo, SISTEMA_OPTICO_LABELS)}
                   </option>
                 ))}
               </select>
               <FieldError message={formErrors.sistemaOpticoCompatible} />
             </label>
 
+            <div className="product-form-group full-width">
+              <h4>Ficha tecnica</h4>
+              <p>Estos valores ayudan a comparar rendimiento, consumo y gama del producto.</p>
+            </div>
+
             <label>
               Lumens
-              <input name="lumens" type="number" value={form.lumens} onChange={handleFormChange} />
+              <input
+                name="lumens"
+                type="number"
+                value={form.lumens}
+                onChange={handleFormChange}
+                placeholder="Ej. 12000"
+              />
+              <span className="product-help-text">Brillo declarado por el fabricante.</span>
               <FieldError message={formErrors.lumens} />
             </label>
 
             <label>
-              Temperatura color (K)
+              Temperatura de color (K)
               <input
                 name="temperaturaColor"
                 type="number"
                 value={form.temperaturaColor}
                 onChange={handleFormChange}
+                placeholder="Ej. 6500"
               />
+              <span className="product-help-text">Tono de luz: menor es mas calido, mayor es mas blanco.</span>
               <FieldError message={formErrors.temperaturaColor} />
             </label>
 
@@ -474,24 +578,28 @@ function ProductosPage() {
                 step="0.01"
                 value={form.potenciaWatts}
                 onChange={handleFormChange}
+                placeholder="Ej. 55"
               />
+              <span className="product-help-text">Consumo electrico; define la gama automaticamente.</span>
               <FieldError message={formErrors.potenciaWatts} />
             </label>
 
             <label>
-              Precio
+              Precio de venta
               <input
                 name="precio"
                 type="number"
                 step="0.01"
                 value={form.precio}
                 onChange={handleFormChange}
+                placeholder="Ej. 180000"
               />
+              <span className="product-help-text">Valor comercial usado por el administrador.</span>
               <FieldError message={formErrors.precio} />
             </label>
 
             <label>
-              Gama luz (calculada por potencia W)
+              Gama de luz
               <select name="idGamaLuz" value={form.idGamaLuz} onChange={handleFormChange} disabled>
                 <option value="">Sin rango configurado</option>
                 {gamasLuz.map((gama) => (
@@ -500,17 +608,45 @@ function ProductosPage() {
                   </option>
                 ))}
               </select>
+              <span
+                className={`product-help-text ${
+                  form.potenciaWatts && !form.idGamaLuz ? "product-help-warning" : ""
+                }`}
+              >
+                {selectedGama
+                  ? `Asignada automaticamente: ${selectedGama.nombre}.`
+                  : "Ingresa la potencia para encontrar una gama activa."}
+              </span>
               <FieldError message={formErrors.idGamaLuz} />
             </label>
 
+            <div className="product-form-group full-width">
+              <h4>Contenido y estado</h4>
+              <p>Informacion opcional para apoyar la gestion interna.</p>
+            </div>
+
             <label>
-              Ruta imagen
-              <input name="imagenPath" value={form.imagenPath} onChange={handleFormChange} maxLength={500} />
+              Ruta de imagen
+              <input
+                name="imagenPath"
+                value={form.imagenPath}
+                onChange={handleFormChange}
+                maxLength={500}
+                placeholder="/imagenes/productos/modelo.jpg"
+              />
+              <span className="product-help-text">Opcional. Mantiene una referencia visual del producto.</span>
             </label>
 
             <label className="full-width">
               Notas
-              <textarea name="notas" value={form.notas} onChange={handleFormChange} rows={3} maxLength={1200} />
+              <textarea
+                name="notas"
+                value={form.notas}
+                onChange={handleFormChange}
+                rows={3}
+                maxLength={1200}
+                placeholder="Detalles de instalacion, compatibilidad o inventario."
+              />
             </label>
 
             <label className="inline-check full-width">
@@ -520,12 +656,12 @@ function ProductosPage() {
                 checked={form.disponible}
                 onChange={handleFormChange}
               />
-              Disponible
+              Producto disponible para recomendaciones
             </label>
 
             <div className="form-actions full-width">
               <button className="btn primary" type="submit" disabled={saving}>
-                {saving ? "Guardando..." : form.id ? "Actualizar" : "Crear"}
+                {saving ? "Guardando..." : form.id ? "Guardar cambios" : "Crear producto"}
               </button>
               <button className="btn secondary" type="button" onClick={resetForm}>
                 Limpiar
@@ -534,13 +670,31 @@ function ProductosPage() {
           </form>
         </article>
 
-        <article className="panel section">
-          <header className="section-header">
-            <h3>Listado de productos</h3>
-            <small>
-              Filtrados: {filteredItems.length} de {items.length} en pagina / {pageInfo.totalElements} total
-            </small>
+        <article className="panel section product-admin-card">
+          <header className="section-header product-section-heading">
+            <div>
+              <h3>Catalogo de productos</h3>
+              <small>
+                {filteredItems.length} visibles de {items.length} en esta pagina / {pageInfo.totalElements} total
+              </small>
+            </div>
+            <span className="product-total-chip">Pagina {pageInfo.page + 1}</span>
           </header>
+
+          <div className="product-list-metrics" aria-label="Resumen de productos filtrados">
+            <span>
+              <strong>{productMetrics.visibles}</strong>
+              visibles
+            </span>
+            <span>
+              <strong>{productMetrics.disponibles}</strong>
+              disponibles
+            </span>
+            <span>
+              <strong>{productMetrics.noDisponibles}</strong>
+              no disponibles
+            </span>
+          </div>
 
           <div className="filter-bar">
             <label className="filter-field">
@@ -583,35 +737,70 @@ function ProductosPage() {
               </button>
             </div>
           </div>
+          <p className="product-help-text product-filter-help">
+            Los filtros se aplican sobre los productos cargados en la pagina actual.
+          </p>
 
           {loading ? (
-            <LoadingBlock text="Cargando productos..." />
+            <LoadingBlock text="Cargando productos LED..." />
           ) : filteredItems.length === 0 ? (
-            <EmptyState title="Sin productos" description="No hay registros para mostrar con esos filtros." />
+            <EmptyState
+              title="No hay productos para mostrar"
+              description="Prueba limpiar los filtros o crea un nuevo producto LED desde el formulario."
+            />
           ) : (
             <>
-              <div className="table-wrapper">
+              <div className="table-wrapper product-table-wrapper">
                 <table>
                   <thead>
                     <tr>
-                      <th>ID</th>
-                      <th>Modelo</th>
-                      <th>Marca</th>
+                      <th>Producto</th>
+                      <th>Ficha tecnica</th>
                       <th>Casquillo</th>
                       <th>Precio</th>
-                      <th>Disponible</th>
-                      <th />
+                      <th>Estado</th>
+                      <th>Acciones</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredItems.map((item) => (
                       <tr key={item.id}>
-                        <td>{item.id}</td>
-                        <td>{item.modelo}</td>
-                        <td>{marcasById[item.idMarcaLed] || item.idMarcaLed}</td>
-                        <td>{casquillosById[item.idCasquillo] || item.idCasquillo}</td>
-                        <td>{item.precio}</td>
-                        <td>{item.disponible ? "Si" : "No"}</td>
+                        <td>
+                          <strong className="product-model-name">{item.modelo}</strong>
+                          <span className="product-muted-line">
+                            ID {item.id} / {marcasById[item.idMarcaLed] || item.idMarcaLed}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="product-spec-stack">
+                            <span>{formatMetric(item.lumens, "lm")}</span>
+                            <span>
+                              {formatMetric(item.potenciaWatts, "W")} /{" "}
+                              {formatMetric(item.temperaturaColor, "K")}
+                            </span>
+                            <span>{gamasById[item.idGamaLuz] || "Gama sin asignar"}</span>
+                          </div>
+                        </td>
+                        <td>
+                          <strong>{casquillosById[item.idCasquillo] || item.idCasquillo}</strong>
+                          <span className="product-muted-line">
+                            {formatCatalogOption(item.posicionAplicable, POSICION_LABELS)} /{" "}
+                            {formatCatalogOption(
+                              item.sistemaOpticoCompatible,
+                              SISTEMA_OPTICO_LABELS
+                            )}
+                          </span>
+                        </td>
+                        <td>{formatCurrency(item.precio)}</td>
+                        <td>
+                          <span
+                            className={`product-status-pill ${
+                              item.disponible ? "is-available" : "is-unavailable"
+                            }`}
+                          >
+                            {item.disponible ? "Disponible" : "No disponible"}
+                          </span>
+                        </td>
                         <td>
                           <div className="table-actions">
                             <button className="btn tiny" type="button" onClick={() => handleEdit(item)}>
