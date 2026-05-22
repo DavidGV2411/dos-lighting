@@ -39,20 +39,24 @@ const REQUEST_FIELD_TO_FORM_FIELD = {
 function validate(form, requiresOpticalQuestion) {
   const errors = {};
 
-  if (!form.marcaId) errors.marcaId = "Selecciona una marca.";
-  if (!form.modeloId) errors.modeloId = "Selecciona un modelo.";
-  if (!form.horarioManejoPerfilId) errors.horarioManejoPerfilId = "Selecciona un horario de manejo.";
-  if (!form.zonaManejoPerfilId) errors.zonaManejoPerfilId = "Selecciona una zona de manejo.";
-  if (!form.usoVehiculoPerfilId) errors.usoVehiculoPerfilId = "Selecciona el uso del vehiculo.";
-  if (!form.tipoPolarizadoId) errors.tipoPolarizadoId = "Selecciona un tipo de polarizado.";
+  if (!form.marcaId) errors.marcaId = "Selecciona la marca del vehiculo.";
+  if (!form.modeloId) errors.modeloId = "Selecciona el modelo del vehiculo.";
+  if (!form.horarioManejoPerfilId) {
+    errors.horarioManejoPerfilId = "Indica cuando manejas principalmente.";
+  }
+  if (!form.zonaManejoPerfilId) {
+    errors.zonaManejoPerfilId = "Indica la zona donde manejas con mas frecuencia.";
+  }
+  if (!form.usoVehiculoPerfilId) errors.usoVehiculoPerfilId = "Selecciona el uso principal.";
+  if (!form.tipoPolarizadoId) errors.tipoPolarizadoId = "Selecciona el nivel de polarizado.";
 
   const anio = toInteger(form.anioVehiculo);
   if (!anio) {
-    errors.anioVehiculo = "Ingresa el anio del vehiculo.";
+    errors.anioVehiculo = "Ingresa el anio para validar compatibilidad.";
   }
 
   if (requiresOpticalQuestion && !form.tieneLupaProyector) {
-    errors.tieneLupaProyector = "Responde si tu vehiculo tiene faros con lupa/proyector.";
+    errors.tieneLupaProyector = "Confirma si el faro tiene lupa o proyector.";
   }
 
   return errors;
@@ -391,7 +395,7 @@ function EncuestaPage() {
     <section className="panel">
       <header className="panel-header">
         <h2>Encuesta y recomendacion</h2>
-        <p>Completa los datos para obtener una recomendacion de luces LED.</p>
+        <p>Completa los datos del vehiculo y tus condiciones de manejo para recibir una recomendacion LED.</p>
       </header>
 
       <ApiErrorBanner
@@ -400,7 +404,12 @@ function EncuestaPage() {
         details={apiError?.details}
       />
 
-      <form className="grid-form" onSubmit={handleSubmit} noValidate>
+      <form className="grid-form survey-form" onSubmit={handleSubmit} noValidate>
+        <div className="survey-section-note full-width">
+          <h3>Datos del vehiculo</h3>
+          <p>Marca, modelo y anio ayudan a filtrar compatibilidades antes de recomendar una luz.</p>
+        </div>
+
         <label>
           Marca
           <select name="marcaId" value={form.marcaId} onChange={handleChange}>
@@ -411,6 +420,7 @@ function EncuestaPage() {
               </option>
             ))}
           </select>
+          <small className="survey-help-text">Primero elige la marca para habilitar sus modelos disponibles.</small>
           <FieldError message={fieldErrors.marcaId} />
         </label>
 
@@ -429,6 +439,9 @@ function EncuestaPage() {
               </option>
             ))}
           </select>
+          <small className="survey-help-text">
+            El modelo define el rango de anios y la compatibilidad del faro.
+          </small>
           <FieldError message={fieldErrors.modeloId} />
         </label>
 
@@ -446,6 +459,9 @@ function EncuestaPage() {
             max={selectedModelo?.anioHasta || new Date().getFullYear()}
           />
           <small className="field-hint">{modelYearHint}</small>
+          <small className="survey-help-text">
+            Usa el anio exacto de matricula o version para detectar mejor el sistema optico.
+          </small>
           {loadingDecisionSistemaOptico ? (
             <small className="field-hint">Detectando configuracion de faros para modelo y anio...</small>
           ) : null}
@@ -467,9 +483,17 @@ function EncuestaPage() {
               <option value="si">Si</option>
               <option value="no">No</option>
             </select>
+            <small className="survey-help-text">
+              La lupa se ve como un lente redondo dentro del faro; si no aparece, normalmente es reflector abierto.
+            </small>
             <FieldError message={fieldErrors.tieneLupaProyector} />
           </label>
         ) : null}
+
+        <div className="survey-section-note full-width">
+          <h3>Condiciones de manejo</h3>
+          <p>Estos datos ajustan la recomendacion segun visibilidad, uso y preferencia de iluminacion.</p>
+        </div>
 
         <label>
           Cuando manejas principalmente?
@@ -481,6 +505,7 @@ function EncuestaPage() {
               </option>
             ))}
           </select>
+          <small className="survey-help-text">Selecciona si conduces mas de dia, de noche o en horarios mixtos.</small>
           <FieldError message={fieldErrors.horarioManejoPerfilId} />
         </label>
 
@@ -494,6 +519,9 @@ function EncuestaPage() {
               </option>
             ))}
           </select>
+          <small className="survey-help-text">
+            La zona ayuda a priorizar alcance, cobertura lateral o equilibrio.
+          </small>
           <FieldError message={fieldErrors.zonaManejoPerfilId} />
         </label>
 
@@ -507,6 +535,7 @@ function EncuestaPage() {
               </option>
             ))}
           </select>
+          <small className="survey-help-text">El uso principal permite diferenciar manejo diario, trabajo u offroad.</small>
           <FieldError message={fieldErrors.usoVehiculoPerfilId} />
         </label>
 
@@ -520,10 +549,16 @@ function EncuestaPage() {
               </option>
             ))}
           </select>
+          <small className="survey-help-text">
+            Un polarizado mas oscuro puede requerir mayor salida luminica para manejar de noche.
+          </small>
           <FieldError message={fieldErrors.tipoPolarizadoId} />
         </label>
 
         <div className="form-actions full-width">
+          <p className="recommendation-form-hint">
+            Revisa que los datos coincidan con el vehiculo real antes de generar la recomendacion.
+          </p>
           <button className="btn primary" type="submit" disabled={submitting}>
             {submitting ? "Recomendando..." : "Recomendar"}
           </button>
