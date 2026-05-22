@@ -131,6 +131,13 @@ Ejemplo de request:
 }
 ```
 
+## Mejora visual de recomendaciones LED
+
+Se mejoro la presentacion de resultados en el frontend para destacar con mayor claridad la mejor opcion sugerida.
+Ahora cada recomendacion muestra de forma mas visible la posicion de luz asociada y la gama/modelo recomendado.
+Tambien se refuerza la lectura del puntaje de compatibilidad cuando esta disponible, sin agregar campos nuevos.
+Los motivos de recomendacion se muestran con mejor jerarquia visual y con manejo seguro cuando faltan datos.
+
 ## Arquitectura actual
 
 El backend TypeScript esta migrando de forma incremental a arquitectura hexagonal. La vertical de recomendacion ya separa:
