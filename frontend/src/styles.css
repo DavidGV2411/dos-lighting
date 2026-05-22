@@ -1288,3 +1288,42 @@ tbody tr:hover {
     grid-template-columns: 1fr;
   }
 }
+
+.survey-form {
+  align-items: start;
+}
+
+.survey-section-note {
+  border: 1px solid #3d315b;
+  border-left: 3px solid #62d6d0;
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  background: rgba(12, 10, 19, 0.64);
+}
+
+.survey-section-note h3 {
+  color: #f4edff;
+  font-size: 0.98rem;
+}
+
+.survey-section-note p {
+  color: #b9aecf;
+  font-size: 0.84rem;
+}
+
+.survey-help-text {
+  color: #aa9cc1;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.recommendation-form-hint {
+  max-width: 520px;
+  color: #b9aecf;
+  font-size: 0.85rem;
+}
+
+.survey-form .form-actions {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
