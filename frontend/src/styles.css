@@ -1133,103 +1133,197 @@ tbody tr:hover {
   }
 }
 
-.recommendation-summary {
-  border: 1px solid #5a4094;
-  border-radius: 12px;
-  padding: 0.85rem;
-  margin-bottom: 0.8rem;
+.product-admin-card {
+  overflow: hidden;
+}
+
+.product-section-heading {
+  align-items: flex-start;
+  margin-bottom: 0.85rem;
+}
+
+.product-section-heading > div {
   display: grid;
-  gap: 0.35rem;
+  gap: 0.22rem;
+}
+
+.product-section-heading h3 {
+  font-size: 1.04rem;
+}
+
+.product-form-grid {
+  gap: 0.85rem;
+}
+
+.product-form-group {
+  border-left: 3px solid #62d6d0;
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
   background:
-    radial-gradient(circle at 100% 0%, rgba(193, 76, 255, 0.18), transparent 40%),
-    linear-gradient(155deg, rgba(29, 22, 45, 0.95), rgba(13, 10, 21, 0.95));
+    linear-gradient(90deg, rgba(98, 214, 208, 0.12), rgba(255, 255, 255, 0.025)),
+    rgba(12, 10, 19, 0.62);
 }
 
-.recommendation-summary-header {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.45rem;
+.product-form-group h4 {
+  color: #f4edff;
+  font-size: 0.95rem;
 }
 
-.recommendation-summary-header p {
-  color: #d3c5f4;
+.product-form-group p {
+  color: #b9aecf;
   font-size: 0.84rem;
 }
 
-.recommendation-position-header {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 0.45rem;
+.product-help-text {
+  display: block;
+  color: #aa9cc1;
+  font-size: 0.8rem;
+  font-weight: 500;
 }
 
-.recommendation-position-header small {
-  color: #bdaee0;
-  font-size: 0.82rem;
+.product-help-warning {
+  color: #ffd99a;
 }
 
-.recommendation-card.is-top-recommended {
-  border-color: #7d57cd;
-  box-shadow: 0 0 0 1px rgba(143, 91, 255, 0.2), 0 12px 22px rgba(10, 7, 17, 0.5);
-}
-
-.recommendation-card-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.45rem;
-}
-
-.recommendation-badge {
+.product-total-chip,
+.product-status-pill {
   display: inline-flex;
   align-items: center;
+  width: fit-content;
   border-radius: 999px;
-  padding: 0.24rem 0.56rem;
-  border: 1px solid #8853ef;
-  background: rgba(142, 57, 255, 0.22);
-  color: #f2e7ff;
-  font-size: 0.73rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  font-size: 0.78rem;
+  font-weight: 800;
 }
 
-.recommendation-reasons {
-  margin-top: 0.2rem;
-  padding-top: 0.35rem;
-  border-top: 1px solid rgba(110, 82, 176, 0.35);
+.product-total-chip {
+  border: 1px solid rgba(98, 214, 208, 0.36);
+  background: rgba(98, 214, 208, 0.1);
+  color: #bdfaf5;
+  padding: 0.35rem 0.6rem;
 }
 
-.recommendation-reasons h5 {
-  color: #efe5ff;
-  margin-bottom: 0.25rem;
+.product-list-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin-bottom: 0.8rem;
 }
 
-.recommendation-reasons ul {
-  margin: 0.2rem 0 0;
-  padding-left: 1rem;
-  color: #d2c6ee;
+.product-list-metrics span {
+  min-height: 58px;
+  border: 1px solid #3d315b;
+  border-radius: 10px;
+  padding: 0.62rem 0.7rem;
+  display: grid;
+  gap: 0.1rem;
+  background: rgba(12, 10, 19, 0.62);
+  color: #bfb2d8;
+  font-size: 0.8rem;
 }
 
-.recommendation-panel.compact .recommendation-summary {
-  padding: 0.72rem;
+.product-list-metrics strong {
+  color: #f6f0ff;
+  font-size: 1.24rem;
+  line-height: 1;
 }
 
-.recommendation-panel.compact .recommendation-badge {
-  font-size: 0.69rem;
+.product-filter-help {
+  margin: -0.35rem 0 0.75rem;
+}
+
+.product-table-wrapper table {
+  min-width: 860px;
+}
+
+.product-model-name,
+.product-muted-line {
+  display: block;
+}
+
+.product-model-name {
+  color: #fff8ff;
+  margin-bottom: 0.18rem;
+}
+
+.product-muted-line {
+  color: #a99bc1;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.product-spec-stack {
+  display: grid;
+  gap: 0.12rem;
+  color: #eadfff;
+}
+
+.product-spec-stack span:last-child {
+  color: #a99bc1;
+  font-size: 0.8rem;
+}
+
+.product-status-pill {
+  padding: 0.32rem 0.55rem;
+  border: 1px solid transparent;
+}
+
+.product-status-pill.is-available {
+  border-color: rgba(77, 214, 151, 0.38);
+  background: rgba(77, 214, 151, 0.14);
+  color: #aef4d4;
+}
+
+.product-status-pill.is-unavailable {
+  border-color: rgba(255, 171, 99, 0.38);
+  background: rgba(255, 171, 99, 0.13);
+  color: #ffd0a8;
 }
 
 @media (max-width: 760px) {
-  .recommendation-position-header {
-    flex-direction: column;
-    align-items: flex-start;
+  .product-section-heading {
+    display: grid;
   }
 
-  .recommendation-card-head {
-    flex-direction: column;
-    align-items: flex-start;
+  .product-list-metrics {
+    grid-template-columns: 1fr;
   }
+}
+
+.survey-form {
+  align-items: start;
+}
+
+.survey-section-note {
+  border: 1px solid #3d315b;
+  border-left: 3px solid #62d6d0;
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem;
+  background: rgba(12, 10, 19, 0.64);
+}
+
+.survey-section-note h3 {
+  color: #f4edff;
+  font-size: 0.98rem;
+}
+
+.survey-section-note p {
+  color: #b9aecf;
+  font-size: 0.84rem;
+}
+
+.survey-help-text {
+  color: #aa9cc1;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.recommendation-form-hint {
+  max-width: 520px;
+  color: #b9aecf;
+  font-size: 0.85rem;
+}
+
+.survey-form .form-actions {
+  justify-content: space-between;
+  flex-wrap: wrap;
 }
