@@ -1132,3 +1132,104 @@ tbody tr:hover {
     max-height: 70vh;
   }
 }
+
+.recommendation-summary {
+  border: 1px solid #5a4094;
+  border-radius: 12px;
+  padding: 0.85rem;
+  margin-bottom: 0.8rem;
+  display: grid;
+  gap: 0.35rem;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(193, 76, 255, 0.18), transparent 40%),
+    linear-gradient(155deg, rgba(29, 22, 45, 0.95), rgba(13, 10, 21, 0.95));
+}
+
+.recommendation-summary-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.recommendation-summary-header p {
+  color: #d3c5f4;
+  font-size: 0.84rem;
+}
+
+.recommendation-position-header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.45rem;
+}
+
+.recommendation-position-header small {
+  color: #bdaee0;
+  font-size: 0.82rem;
+}
+
+.recommendation-card.is-top-recommended {
+  border-color: #7d57cd;
+  box-shadow: 0 0 0 1px rgba(143, 91, 255, 0.2), 0 12px 22px rgba(10, 7, 17, 0.5);
+}
+
+.recommendation-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.recommendation-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.24rem 0.56rem;
+  border: 1px solid #8853ef;
+  background: rgba(142, 57, 255, 0.22);
+  color: #f2e7ff;
+  font-size: 0.73rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.recommendation-reasons {
+  margin-top: 0.2rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid rgba(110, 82, 176, 0.35);
+}
+
+.recommendation-reasons h5 {
+  color: #efe5ff;
+  margin-bottom: 0.25rem;
+}
+
+.recommendation-reasons ul {
+  margin: 0.2rem 0 0;
+  padding-left: 1rem;
+  color: #d2c6ee;
+}
+
+.recommendation-panel.compact .recommendation-summary {
+  padding: 0.72rem;
+}
+
+.recommendation-panel.compact .recommendation-badge {
+  font-size: 0.69rem;
+}
+
+@media (max-width: 760px) {
+  .recommendation-position-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .recommendation-card-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
