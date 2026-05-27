@@ -1,0 +1,29 @@
+Patron de Diseño 
+
+Se ve sobre todo en backend-ts/src/recommendation.
+
+Puertos (contratos): ports.ts
+Ahí defines interfaces (RecommendationRepository) sin depender de PostgreSQL.
+
+Caso de uso (aplicación): resolve-recommendation-use-case.ts
+El caso de uso recibe el puerto por inyección (constructor(private readonly repository: RecommendationRepository)).
+
+Adaptador de infraestructura: postgres-recommendation-repository.ts
+Implementa ese puerto con SQL/pg.
+
+Adaptador HTTP (entrada): recommendation-routes.ts
+Traduce request/response y llama al caso de uso.
+
+Dominio puro: scoring.ts, errors.ts
+Reglas de negocio sin Express ni acceso directo a DB.
+
+“Aplicamos arquitectura hexagonal en la vertical de recomendación: separa negocio, casos de uso, contratos e infraestructura.”
+“El patrón clave es Ports & Adapters + Repository + Use Case.”
+“Los puertos están en ports.ts, y definen qué necesita la aplicación sin acoplarse a PostgreSQL.”
+“La lógica de negocio vive en casos de uso como resolve-recommendation-use-case.ts y reglas de dominio como scoring.ts.”
+“La implementación técnica concreta está en el adaptador postgres-recommendation-repository.ts.”
+“El adaptador de entrada HTTP está en recommendation-routes.ts: valida request y llama al caso de uso.”
+“Beneficio principal: si mañana cambio Postgres por otro proveedor, el caso de uso casi no cambia.”
+“También mejora pruebas: el caso de uso se testea con repositorio fake sin levantar DB.”
+“Trade-off: hay más archivos y más diseño inicial, pero se gana mantenibilidad.”
+“Estado real del proyecto: la recomendación ya sigue hexagonal; otras zonas como crud-routes.ts aún están más acopladas, porque la migración es incremental.”
