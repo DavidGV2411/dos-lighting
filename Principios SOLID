@@ -1,1 +1,69 @@
 
+Principios SOLID utilizados en el proyecto
+
+En el proyecto se evidencian principalmente dos principios SOLID: el Principio de Responsabilidad Única y el Principio de Inversión de Dependencias. 
+Estos principios se aplicaron con mayor claridad en el módulo de recomendaciones ubicado en: backend-ts/src/recommendation
+Este módulo está organizado usando una separación por capas, lo que permite que la lógica de negocio esté más ordenada, sea más fácil de mantener y pueda crecer sin mezclar responsabilidades.
+
+Principio de Responsabilidad Única
+El Principio de Responsabilidad Única indica que cada clase, archivo o módulo debe tener una sola responsabilidad principal. 
+Es decir, cada parte del sistema debe encargarse de una tarea específica y no mezclar varias funciones al mismo tiempo.
+
+En el proyecto, este principio se utilizó principalmente en el módulo de recomendaciones. Por ejemplo: backend-ts/src/recommendation/http/recommendation-routes.ts
+
+Este archivo se encarga de recibir la petición HTTP, validar los datos de entrada y devolver una respuesta al cliente. 
+Su responsabilidad no es calcular directamente la recomendación ni consultar la base de datos.
+
+backend-ts/src/recommendation/application/resolve-recommendation-use-case.ts
+Este archivo contiene el caso de uso principal para resolver una recomendación. 
+Su responsabilidad es coordinar el flujo de la lógica: validar el modelo, revisar el año del vehículo, buscar compatibilidades, 
+obtener productos compatibles, calcular el nivel de confianza y construir la respuesta final.
+
+backend-ts/src/recommendation/domain/scoring.ts
+Este archivo se encarga específicamente del cálculo del puntaje y del ranking de productos recomendados.
+Su responsabilidad está enfocada en las reglas de negocio relacionadas con la recomendación.
+
+backend-ts/src/recommendation/infrastructure/postgres-recommendation-repository.ts
+Este archivo se encarga únicamente de la comunicación con PostgreSQL.
+Aquí están las consultas SQL para buscar modelos, productos, compatibilidades y guardar consultas.
+
+Gracias a esta separación, el proyecto evita mezclar rutas, reglas de negocio y consultas SQL en un solo archivo. 
+Esto hace que el código sea más claro y más fácil de modificar.
+
+Principio de Inversión de Dependencias El Principio de Inversión de Dependencias indica que la lógica importante del sistema no debe depender directamente de detalles técnicos como PostgreSQL, 
+Express o una base de datos específica. En lugar de eso, debe depender de abstracciones, contratos o interfaces.
+
+En el proyecto, este principio se ve principalmente en estos archivos:
+
+backend-ts/src/recommendation/application/ports.ts
+backend-ts/src/recommendation/application/resolve-recommendation-use-case.ts
+backend-ts/src/recommendation/infrastructure/postgres-recommendation-repository.ts
+
+En el archivo:
+
+backend-ts/src/recommendation/application/ports.ts se definen los contratos que necesita la aplicación, por ejemplo:
+
+RecommendationRepository
+CatalogRepository
+CompatibilityRepository
+ProductRepository
+ConsultationRepository
+
+Estos contratos indican qué operaciones necesita el caso de uso, como buscar modelos, buscar productos compatibles, consultar compatibilidades y guardar consultas. 
+Sin embargo, no indican cómo se deben realizar esas operaciones. Es decir, no obligan a usar PostgreSQL directamente.
+Luego, en:
+
+backend-ts/src/recommendation/application/resolve-recommendation-use-case.ts el caso de uso depende de la interfaz RecommendationRepository, no de la clase concreta PostgresRecommendationRepository.
+Esto es importante porque el caso de uso no está amarrado directamente a PostgreSQL. Solo necesita recibir un repositorio que cumpla con el contrato definido.
+
+Finalmente, en:backend-ts/src/recommendation/infrastructure/postgres-recommendation-repository.ts
+se implementa ese contrato usando PostgreSQL. Esta clase sí conoce los detalles técnicos de la base de datos, como tablas, columnas y consultas SQL.
+La relación se puede entender así:
+
+ResolveRecommendationUseCase
+        depende de
+RecommendationRepository
+        implementado por
+PostgresRecommendationRepository
+
+Esto permite que en el futuro se pueda cambiar PostgreSQL por otra fuente de datos, como MongoDB, una API externa o datos de prueba, sin modificar la lógica principal del caso de uso.
